@@ -1,0 +1,16 @@
+{
+  "name": "any-parser",
+  "version": "1.0.0",
+  "description": "General string parser",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node clean && tsc --build",
+    "clean": "node clean"
+  },
+  "author": "0nepeop1e <engshun.lim@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^3.9.5"
+  }
+}
