@@ -12,7 +12,7 @@ export interface FallbackRule extends BaseRule {
     test: 'fallback';
     action: 'commit' | 'halt';
 }
-export interface MatchRule {
+export interface MatchRule extends BaseRule {
     test: 'char' | 'extend' | {
         pattern: string;
         flags?: string;
@@ -24,14 +24,28 @@ export interface MatchRule {
 interface RuleHolder<T extends Rule> {
     rule: T;
 }
-declare class RuleBuilderImpl implements RuleHolder<Rule> {
+export interface SerializedParser {
+    root: number;
+    rules: SerializedRule[];
+}
+export declare type SerializedRule = SerializedMatchRule | FallbackRule;
+interface SerializedMatchRule extends BaseRule {
+    test: 'char' | 'extend' | {
+        pattern: string;
+        flags?: string;
+    };
+    token?: string;
+    children?: number[];
+    next?: number[];
+}
+export declare class RuleBuilder implements RuleHolder<Rule> {
     static fallback: {
-        readonly commit: RuleHolder<FallbackRule> | RuleBuilderImpl;
-        readonly halt: RuleHolder<FallbackRule> | RuleBuilderImpl;
+        readonly commit: RuleHolder<FallbackRule> | RuleBuilder;
+        readonly halt: RuleHolder<FallbackRule> | RuleBuilder;
     };
     static char: {
-        readonly append: RuleHolder<MatchRule> | RuleBuilderImpl;
-        readonly skip: RuleHolder<MatchRule> | RuleBuilderImpl;
+        readonly append: RuleHolder<MatchRule> | RuleBuilder;
+        readonly skip: RuleHolder<MatchRule> | RuleBuilder;
     };
     get rule(): Rule;
     private readonly _rule;
@@ -41,5 +55,17 @@ declare class RuleBuilderImpl implements RuleHolder<Rule> {
     children(...rules: RuleHolder<Rule>[]): this;
     next(...rules: RuleHolder<Rule>[]): this;
 }
-export declare const RuleBuilder: (test: RuleTest) => RuleBuilderImpl | typeof RuleBuilderImpl;
+interface RuleFunction {
+    fallback: {
+        readonly commit: RuleHolder<FallbackRule> | RuleBuilder;
+        readonly halt: RuleHolder<FallbackRule> | RuleBuilder;
+    };
+    char: {
+        readonly append: RuleHolder<MatchRule> | RuleBuilder;
+        readonly skip: RuleHolder<MatchRule> | RuleBuilder;
+    };
+    (test: RuleTest): RuleBuilder;
+    new (test: RuleTest): RuleBuilder;
+}
+export declare const rule: RuleFunction;
 export {};

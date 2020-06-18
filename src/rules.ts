@@ -14,7 +14,7 @@ export interface FallbackRule extends BaseRule{
     action: 'commit' | 'halt';
 }
 
-export interface MatchRule {
+export interface MatchRule extends BaseRule{
     test: 'char' | 'extend' | {pattern: string, flags?:string};
     token?: string,
     children?: Rule[],
@@ -23,6 +23,20 @@ export interface MatchRule {
 
 interface RuleHolder<T extends Rule> {
     rule: T;
+}
+
+export interface SerializedParser {
+    root: number;
+    rules: SerializedRule[];
+}
+
+export declare type SerializedRule = SerializedMatchRule | FallbackRule;
+
+interface SerializedMatchRule extends BaseRule {
+    test: 'char' | 'extend' | {pattern: string, flags?:string};
+    token?: string;
+    children?: number[];
+    next?: number[];
 }
 
 export class RuleBuilder implements RuleHolder<Rule>{

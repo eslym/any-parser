@@ -1,17 +1,17 @@
 const fs = require('fs');
 const path = require('path');
 
-function rmdashr(path){
-    if(fs.existsSync(path)){
-        if(fs.lstatSync(path).isDirectory()){
-            fs.readdirSync(path)
-                .map(p => path.join(path, p))
+function rmdashr(p){
+    if(fs.existsSync(p)){
+        if(fs.lstatSync(p).isDirectory()){
+            fs.readdirSync(p)
+                .map(_p => path.join(p, _p))
                 .forEach(rmdashr);
-            fs.rmdirSync(path);
+            fs.rmdirSync(p);
         } else {
-            fs.unlinkSync(path);
+            fs.unlinkSync(p);
         }
-        console.info(`Deleted ${path}`);
+        console.info(`Deleted ${p}`);
     }
 }
 

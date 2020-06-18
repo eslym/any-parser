@@ -1,28 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var RuleBuilderImpl = /** @class */ (function () {
-    function RuleBuilderImpl(test) {
-        if (!(this instanceof RuleBuilderImpl)) {
-            return new RuleBuilderImpl(test);
+exports.rule = exports.RuleBuilder = void 0;
+var RuleBuilder = /** @class */ (function () {
+    function RuleBuilder(test) {
+        if (!(this instanceof RuleBuilder)) {
+            return new RuleBuilder(test);
         }
         this._rule = { test: test };
     }
-    Object.defineProperty(RuleBuilderImpl.prototype, "rule", {
+    Object.defineProperty(RuleBuilder.prototype, "rule", {
         get: function () {
             return this._rule;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
-    RuleBuilderImpl.prototype.token = function (name) {
+    RuleBuilder.prototype.token = function (name) {
         this._rule.token = name;
         return this;
     };
-    RuleBuilderImpl.prototype.action = function (action) {
+    RuleBuilder.prototype.action = function (action) {
         this._rule.action = action;
         return this;
     };
-    RuleBuilderImpl.prototype.children = function () {
+    RuleBuilder.prototype.children = function () {
         var rules = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             rules[_i] = arguments[_i];
@@ -33,7 +34,7 @@ var RuleBuilderImpl = /** @class */ (function () {
         Array.prototype.push.apply(this._rule.children, rules.map(function (r) { return r.rule; }));
         return this;
     };
-    RuleBuilderImpl.prototype.next = function () {
+    RuleBuilder.prototype.next = function () {
         var rules = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             rules[_i] = arguments[_i];
@@ -44,15 +45,16 @@ var RuleBuilderImpl = /** @class */ (function () {
         Array.prototype.push.apply(this._rule.next, rules.map(function (r) { return r.rule; }));
         return this;
     };
-    RuleBuilderImpl.fallback = {
-        commit: (new RuleBuilderImpl('fallback')).action('commit'),
-        halt: (new RuleBuilderImpl('fallback')).action('halt'),
+    RuleBuilder.fallback = {
+        commit: (new RuleBuilder('fallback')).action('commit'),
+        halt: (new RuleBuilder('fallback')).action('halt'),
     };
-    RuleBuilderImpl.char = {
-        append: (new RuleBuilderImpl('char')).action('append'),
-        skip: (new RuleBuilderImpl('char')).action('skip'),
+    RuleBuilder.char = {
+        append: (new RuleBuilder('char')).action('append'),
+        skip: (new RuleBuilder('char')).action('skip'),
     };
-    return RuleBuilderImpl;
+    return RuleBuilder;
 }());
-exports.RuleBuilder = RuleBuilderImpl;
+exports.RuleBuilder = RuleBuilder;
+exports.rule = RuleBuilder;
 //# sourceMappingURL=rules.js.map
