@@ -1,0 +1,122 @@
+{
+  "$ref": "#/definitions/SerializedParser",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "FallbackRule": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "commit",
+            "halt"
+          ],
+          "type": "string"
+        },
+        "test": {
+          "enum": [
+            "fallback"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "test"
+      ],
+      "type": "object"
+    },
+    "RuleAction": {
+      "enum": [
+        "append",
+        "commit",
+        "halt",
+        "skip"
+      ],
+      "type": "string"
+    },
+    "SerializedParser": {
+      "additionalProperties": false,
+      "properties": {
+        "root": {
+          "type": "number"
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/definitions/SerializedRule"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "root",
+        "rules"
+      ],
+      "type": "object"
+    },
+    "SerializedRule": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "$ref": "#/definitions/RuleAction"
+            },
+            "children": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "next": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "test": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "char"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "extend"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "flags": {
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "token": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "test"
+          ],
+          "type": "object"
+        },
+        {
+          "$ref": "#/definitions/FallbackRule"
+        }
+      ]
+    }
+  }
+}
