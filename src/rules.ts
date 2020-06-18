@@ -25,21 +25,21 @@ interface RuleHolder<T extends Rule> {
     rule: T;
 }
 
-class RuleBuilderImpl implements RuleHolder<Rule>{
+export class RuleBuilder implements RuleHolder<Rule>{
     static fallback: {
-        readonly commit: RuleHolder<FallbackRule> | RuleBuilderImpl,
-        readonly halt: RuleHolder<FallbackRule> | RuleBuilderImpl
+        readonly commit: RuleHolder<FallbackRule> | RuleBuilder,
+        readonly halt: RuleHolder<FallbackRule> | RuleBuilder
     } = {
-        commit: (new RuleBuilderImpl('fallback')).action('commit'),
-        halt: (new RuleBuilderImpl('fallback')).action('halt'),
+        commit: (new RuleBuilder('fallback')).action('commit'),
+        halt: (new RuleBuilder('fallback')).action('halt'),
     };
 
     static char: {
-        readonly append: RuleHolder<MatchRule> | RuleBuilderImpl,
-        readonly skip: RuleHolder<MatchRule> | RuleBuilderImpl,
+        readonly append: RuleHolder<MatchRule> | RuleBuilder,
+        readonly skip: RuleHolder<MatchRule> | RuleBuilder,
     } = {
-        append: (new RuleBuilderImpl('char')).action('append'),
-        skip: (new RuleBuilderImpl('char')).action('skip'),
+        append: (new RuleBuilder('char')).action('append'),
+        skip: (new RuleBuilder('char')).action('skip'),
     }
 
     get rule(): Rule {
@@ -49,8 +49,8 @@ class RuleBuilderImpl implements RuleHolder<Rule>{
     private readonly _rule: any;
 
     constructor(test: RuleTest) {
-        if(!(this instanceof RuleBuilderImpl)){
-            return new RuleBuilderImpl(test);
+        if(!(this instanceof RuleBuilder)){
+            return new RuleBuilder(test);
         }
         this._rule = { test: test };
     }
@@ -88,4 +88,17 @@ class RuleBuilderImpl implements RuleHolder<Rule>{
     }
 }
 
-export const RuleBuilder: (test: RuleTest)=>RuleBuilderImpl | typeof RuleBuilderImpl = RuleBuilderImpl as any;
+interface RuleFunction{
+    fallback: {
+        readonly commit: RuleHolder<FallbackRule> | RuleBuilder,
+        readonly halt: RuleHolder<FallbackRule> | RuleBuilder
+    };
+    char: {
+        readonly append: RuleHolder<MatchRule> | RuleBuilder,
+        readonly skip: RuleHolder<MatchRule> | RuleBuilder,
+    };
+    (test: RuleTest):RuleBuilder;
+    new (test: RuleTest):RuleBuilder;
+}
+
+export const rule: RuleFunction = RuleBuilder as any;
