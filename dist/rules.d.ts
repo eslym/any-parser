@@ -24,8 +24,13 @@ export interface MatchRule extends BaseRule {
 interface RuleHolder<T extends Rule> {
     rule: T;
 }
+interface SerializedParserEntries {
+    default: number;
+    [name: string]: number;
+}
 export interface SerializedParser {
-    root: number;
+    '$schema'?: string;
+    entries: SerializedParserEntries;
     rules: SerializedRule[];
 }
 export declare type SerializedRule = SerializedMatchRule | FallbackRule;

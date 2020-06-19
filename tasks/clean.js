@@ -15,7 +15,7 @@ function rmdashr(p){
     }
 }
 
-fs.readdirSync('dist')
+fs.readdirSync(path.join(__dirname, '../dist'))
     .filter(s => !s.startsWith('.'))
     .map(p => path.join(__dirname, "dist", p))
     .forEach(rmdashr);

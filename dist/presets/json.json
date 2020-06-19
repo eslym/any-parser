@@ -1,0 +1,257 @@
+{
+  "$schema": "..\\..\\schema\\parser.json",
+  "entries": {
+    "default": 0,
+    "StringRule": 3,
+    "NumberRule": 12,
+    "BooleanRule": 15,
+    "NullRule": 16,
+    "ArrayRule": 17,
+    "ObjectRule": 21
+  },
+  "rules": [
+    {
+      "test": {
+        "pattern": "\\s*"
+      },
+      "next": [
+        1,
+        7
+      ]
+    },
+    {
+      "test": "extend",
+      "children": [
+        2
+      ],
+      "next": [
+        27
+      ]
+    },
+    {
+      "test": "extend",
+      "token": "VALUE",
+      "children": [
+        3,
+        12,
+        15,
+        16,
+        17,
+        21
+      ]
+    },
+    {
+      "test": {
+        "pattern": "\""
+      },
+      "token": "STRING",
+      "children": [
+        4,
+        8,
+        9,
+        11,
+        7
+      ]
+    },
+    {
+      "test": {
+        "pattern": "\\\\"
+      },
+      "action": "skip",
+      "next": [
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "test": {
+        "pattern": "[\"\\\\\\/bfnr]"
+      },
+      "token": "ESCAPE"
+    },
+    {
+      "test": {
+        "pattern": "u[0-9a-f]{4}",
+        "flags": "i"
+      },
+      "token": "UNICODE"
+    },
+    {
+      "test": "fallback",
+      "action": "halt"
+    },
+    {
+      "test": {
+        "pattern": "[\\x00-\\x1f\\x7f\\x80-\\x9f]"
+      },
+      "action": "halt"
+    },
+    {
+      "test": {
+        "pattern": "\""
+      },
+      "action": "skip",
+      "next": [
+        10
+      ]
+    },
+    {
+      "test": "fallback",
+      "action": "commit"
+    },
+    {
+      "test": "char",
+      "action": "append"
+    },
+    {
+      "test": {
+        "pattern": "-?(?:0|[1-9]\\d+)"
+      },
+      "token": "NUMBER",
+      "children": [
+        13,
+        14
+      ]
+    },
+    {
+      "test": {
+        "pattern": ".\\d+"
+      },
+      "token": "FRACTION",
+      "next": [
+        14
+      ]
+    },
+    {
+      "test": {
+        "pattern": "[eE][-+]?\\d+"
+      },
+      "token": "EXPONENT"
+    },
+    {
+      "test": {
+        "pattern": "true|false"
+      },
+      "token": "BOOEAN"
+    },
+    {
+      "test": {
+        "pattern": "null"
+      },
+      "token": "NULL"
+    },
+    {
+      "test": {
+        "pattern": "\\[\\s*?"
+      },
+      "token": "ARRAY",
+      "children": [
+        18
+      ]
+    },
+    {
+      "test": "extend",
+      "token": "ITEM",
+      "children": [
+        2
+      ],
+      "next": [
+        19,
+        20,
+        7
+      ]
+    },
+    {
+      "test": {
+        "pattern": "\\s*?]"
+      },
+      "action": "skip",
+      "next": [
+        10
+      ]
+    },
+    {
+      "test": {
+        "pattern": "\\s*?,\\s*?"
+      },
+      "action": "skip",
+      "next": [
+        18,
+        7
+      ]
+    },
+    {
+      "test": {
+        "pattern": "{\\s*"
+      },
+      "token": "OBJECT",
+      "children": [
+        22,
+        25,
+        7
+      ]
+    },
+    {
+      "test": "extend",
+      "token": "ENTRY",
+      "children": [
+        23
+      ],
+      "next": [
+        25,
+        26,
+        7
+      ]
+    },
+    {
+      "test": "extend",
+      "token": "KEY",
+      "children": [
+        3
+      ],
+      "next": [
+        24,
+        7
+      ]
+    },
+    {
+      "test": {
+        "pattern": "\\s*:\\s*"
+      },
+      "action": "skip",
+      "next": [
+        2,
+        7
+      ]
+    },
+    {
+      "test": {
+        "pattern": "\\s*}"
+      },
+      "action": "skip",
+      "next": [
+        10
+      ]
+    },
+    {
+      "test": {
+        "pattern": "\\s*?,\\s*?"
+      },
+      "action": "skip",
+      "next": [
+        22,
+        7
+      ]
+    },
+    {
+      "test": {
+        "pattern": "\\s*$"
+      },
+      "next": [
+        10,
+        7
+      ]
+    }
+  ]
+}

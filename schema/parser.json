@@ -37,8 +37,22 @@
     "SerializedParser": {
       "additionalProperties": false,
       "properties": {
-        "root": {
-          "type": "number"
+        "$schema": {
+          "type": "string"
+        },
+        "entries": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "properties": {
+            "default": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "default"
+          ],
+          "type": "object"
         },
         "rules": {
           "items": {
@@ -48,7 +62,7 @@
         }
       },
       "required": [
-        "root",
+        "entries",
         "rules"
       ],
       "type": "object"

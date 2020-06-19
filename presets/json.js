@@ -1,6 +1,6 @@
-import {Rule, rule, RuleBuilder} from "../rules";
+const rule = require('../dist/rules').rule;
 
-export const StringRule: RuleBuilder = rule({pattern: /"/.source})
+exports.StringRule = rule({pattern: /"/.source})
     .token('STRING')
     .children(
         rule({pattern: /\\/.source})
@@ -27,24 +27,24 @@ let fraction = rule({pattern: /.\d+/.source})
     .token('FRACTION')
     .next(exponent);
 
-export const NumberRule: RuleBuilder = rule({pattern: /-?(?:0|[1-9]\d+)/.source})
+exports.NumberRule = rule({pattern: /-?(?:0|[1-9]\d+)/.source})
     .token('NUMBER')
     .children(
         fraction,
         exponent,
     );
 
-export const BooleanRule: RuleBuilder = rule({pattern: /true|false/.source})
+exports.BooleanRule = rule({pattern: /true|false/.source})
     .token('BOOEAN');
 
-export const NullRule: RuleBuilder = rule({pattern: 'null'})
+exports.NullRule = rule({pattern: 'null'})
     .token('NULL');
 
 let val = rule('extend')
     .token('VALUE')
     .children(
-        StringRule, NumberRule,
-        BooleanRule, NullRule
+        exports.StringRule, exports.NumberRule,
+        exports.BooleanRule, exports.NullRule
     )
 
 let listEnd = rule({pattern: /\s*?]/.source})
@@ -62,15 +62,15 @@ let listSap = rule({pattern: /\s*?,\s*?/.source})
 
 listItem.next(listSap, rule.fallback.halt);
 
-export const ArrayRule = rule({pattern: /\[\s*?/.source})
+exports.ArrayRule = rule({pattern: /\[\s*?/.source})
     .token('ARRAY')
     .children(listItem);
 
-val.children(ArrayRule);
+val.children(exports.ArrayRule);
 
 let key = rule('extend')
     .token('KEY')
-    .children(StringRule)
+    .children(exports.StringRule)
     .next(
         rule({pattern: /\s*:\s*/.source})
             .action('skip')
@@ -93,13 +93,13 @@ let entrySap = rule({pattern: /\s*?,\s*?/.source})
 
 entry.next(entrySap, rule.fallback.halt);
 
-export const ObjectRule = rule({pattern: /{\s*/.source})
+exports.ObjectRule = rule({pattern: /{\s*/.source})
     .token('OBJECT')
     .children(entry, objEnd, rule.fallback.halt);
 
-val.children(ObjectRule);
+val.children(exports.ObjectRule);
 
-export const JsonRule = rule({pattern: /\s*/.source})
+exports.default = rule({pattern: /\s*/.source})
     .next(
         rule('extend')
             .children(val)
