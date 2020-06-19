@@ -93,10 +93,10 @@ class FallbackConsumer extends Consumer {
 
 class MatchConsumer extends Consumer {
     set children(value: Rule[]) {
-        this._children = value;
+        this._children = value ?? [];
     }
     set next(value: Rule[]) {
-        this._next = value;
+        this._next = value ?? [];
     }
 
     private _children: Rule[] = [];
@@ -125,12 +125,19 @@ class MatchConsumer extends Consumer {
                 });
             } else {
                 let consumed = val.length;
+                str = str.slice(val.length);
                 val = {
                     name: this.token,
                     value: val,
                     children: [],
                 };
+                let loopChild = true;
+                while (loopChild){
+                    for(let r of this._children){
+                        let c = this.parser.resolveConsumer(r);
 
+                    }
+                }
             }
         } else {
             if(typeof this.token !== 'undefined'){
@@ -228,5 +235,25 @@ export class Parser {
             }
         });
         return data;
+    }
+
+    resolveConsumer(rule: Rule): Consumer{
+        let index = this.rules.indexOf(rule);
+        if(index === -1){
+            return undefined;
+        }
+        if(typeof this.consumer[index] === 'undefined'){
+            if(rule.test === 'fallback'){
+                this.consumer[index] = new FallbackConsumer(this, rule.action as any);
+            } else if (rule.test === 'extend') {
+
+            } else {
+                let c = new MatchConsumer(this, rule.action as any, rule.test, rule.token);
+                c.children = rule.children;
+                c.next = rule.next;
+                this.consumer[index] = c;
+            }
+        }
+        return this.consumer[index];
     }
 }
