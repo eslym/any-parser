@@ -3,11 +3,11 @@
   "entries": {
     "default": 0,
     "StringRule": 3,
-    "NumberRule": 12,
-    "BooleanRule": 15,
-    "NullRule": 16,
-    "ArrayRule": 17,
-    "ObjectRule": 21
+    "NumberRule": 13,
+    "BooleanRule": 16,
+    "NullRule": 17,
+    "ArrayRule": 18,
+    "ObjectRule": 22
   },
   "rules": [
     {
@@ -16,7 +16,7 @@
       },
       "next": [
         1,
-        7
+        8
       ]
     },
     {
@@ -25,7 +25,7 @@
         2
       ],
       "next": [
-        27
+        28
       ]
     },
     {
@@ -33,11 +33,11 @@
       "token": "VALUE",
       "children": [
         3,
-        12,
-        15,
+        13,
         16,
         17,
-        21
+        18,
+        22
       ]
     },
     {
@@ -47,10 +47,10 @@
       "token": "STRING",
       "children": [
         4,
-        8,
         9,
-        11,
-        7
+        10,
+        12,
+        8
       ]
     },
     {
@@ -61,7 +61,7 @@
       "next": [
         5,
         6,
-        7
+        8
       ]
     },
     {
@@ -72,7 +72,17 @@
     },
     {
       "test": {
-        "pattern": "u[0-9a-f]{4}",
+        "pattern": "u"
+      },
+      "action": "skip",
+      "next": [
+        7,
+        8
+      ]
+    },
+    {
+      "test": {
+        "pattern": "[0-9a-f]{4}",
         "flags": "i"
       },
       "token": "UNICODE"
@@ -93,7 +103,7 @@
       },
       "action": "skip",
       "next": [
-        10
+        11
       ]
     },
     {
@@ -110,8 +120,8 @@
       },
       "token": "NUMBER",
       "children": [
-        13,
-        14
+        14,
+        15
       ]
     },
     {
@@ -120,7 +130,7 @@
       },
       "token": "FRACTION",
       "next": [
-        14
+        15
       ]
     },
     {
@@ -147,7 +157,7 @@
       },
       "token": "ARRAY",
       "children": [
-        18
+        19
       ]
     },
     {
@@ -157,9 +167,9 @@
         2
       ],
       "next": [
-        19,
         20,
-        7
+        21,
+        8
       ]
     },
     {
@@ -168,7 +178,7 @@
       },
       "action": "skip",
       "next": [
-        10
+        11
       ]
     },
     {
@@ -177,8 +187,8 @@
       },
       "action": "skip",
       "next": [
-        18,
-        7
+        19,
+        8
       ]
     },
     {
@@ -187,21 +197,21 @@
       },
       "token": "OBJECT",
       "children": [
-        22,
-        25,
-        7
+        23,
+        26,
+        8
       ]
     },
     {
       "test": "extend",
       "token": "ENTRY",
       "children": [
-        23
+        24
       ],
       "next": [
-        25,
         26,
-        7
+        27,
+        8
       ]
     },
     {
@@ -211,8 +221,8 @@
         3
       ],
       "next": [
-        24,
-        7
+        25,
+        8
       ]
     },
     {
@@ -222,7 +232,7 @@
       "action": "skip",
       "next": [
         2,
-        7
+        8
       ]
     },
     {
@@ -231,7 +241,7 @@
       },
       "action": "skip",
       "next": [
-        10
+        11
       ]
     },
     {
@@ -240,8 +250,8 @@
       },
       "action": "skip",
       "next": [
-        22,
-        7
+        23,
+        8
       ]
     },
     {
@@ -249,8 +259,8 @@
         "pattern": "\\s*$"
       },
       "next": [
-        10,
-        7
+        11,
+        8
       ]
     }
   ]

@@ -8,8 +8,13 @@ exports.StringRule = rule({pattern: /"/.source})
             .next(
                 rule({pattern: /["\\\/bfnr]/.source})
                     .token('ESCAPE'),
-                rule({pattern: /u[0-9a-f]{4}/.source, flags: 'i'})
-                    .token('UNICODE'),
+                rule({pattern: /u/.source})
+                    .action('skip')
+                    .next(
+                        rule({pattern: /[0-9a-f]{4}/.source, flags:'i'})
+                            .token('UNICODE'),
+                        rule.fallback.halt,
+                    ),
                 rule.fallback.halt,
             ),
         rule({pattern: /[\x00-\x1f\x7f\x80-\x9f]/.source}).action('halt'),

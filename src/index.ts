@@ -3,6 +3,25 @@ import {Schema, Validator} from "jsonschema";
 
 const ParserSchema: Schema = require("../schema/parser.json");
 
+const ArrLast = {
+    get(arr: any[], prop, receiver?: any) {
+        if (prop === 'last') {
+            return arr[arr.length - 1];
+        }
+        return Reflect.get(arr, prop, receiver);
+    },
+    set(arr: any[], prop, value, receiver?: any) {
+        if (prop === 'last' && arr.length > 0) {
+            return arr[arr.length - 1] = value;
+        }
+        return Reflect.set(arr, prop, value, receiver);
+    }
+};
+
+interface HasLastArr<T> extends Array<T> {
+    last: T;
+}
+
 function deepLoop(rules: Rule[], rule: Rule) {
     if (rules.indexOf(rule) !== -1) {
         return;
@@ -132,41 +151,39 @@ class MatchConsumer extends Consumer {
                 value: val,
                 children: []
             }
-            let children = token.children;
+            let children = new Proxy(token.children, ArrLast) as HasLastArr<Token | string>;
             let consumed = val.length;
             if (this._children.length !== 0) {
                 let loop = true;
-                while (loop){
+                while (loop) {
                     let resolved = false;
-                    for(let rule of this._children[Symbol.iterator]()){
+                    for (let rule of this._children[Symbol.iterator]()) {
                         let c = this.parser.resolveConsumer(rule);
-                        if(c.accept(str)){
-                            for(let res of c.consume(str)){
-                                if(res.action !== ConsumerAction.SKIP){
-                                    if(typeof res.value === 'string'){
-                                        let {length, [length - 1]: last} = children;
-                                        if(typeof last !== 'string'){
+                        if (c.accept(str)) {
+                            for (let res of c.consume(str)) {
+                                if (res.action !== ConsumerAction.SKIP) {
+                                    if (typeof res.value === 'string') {
+                                        if (typeof children.last !== 'string') {
                                             children.push('');
-                                            length++;
                                         }
-                                        (children as string[])[length - 1] += res.value;
+                                        children.last += res.value;
                                     } else if (typeof res.value !== 'undefined') {
                                         children.push(res.value);
                                     }
                                 }
                                 str = str.slice(res.consumed);
                                 consumed += res.consumed;
-                                if(res.action === ConsumerAction.COMMIT){
+                                if (res.action === ConsumerAction.COMMIT) {
                                     loop = false;
-                                } else if (res.action === ConsumerAction.HALT){
-                                    throw new Error('Syntax Error');
+                                } else if (res.action === ConsumerAction.HALT) {
+                                    throw new Error('Syntax Error at > ' + str.slice(0, 10));
                                 }
                             }
                             resolved = true;
                             break;
                         }
                     }
-                    if(!resolved){
+                    if (!resolved) {
                         break;
                     }
                 }
@@ -177,10 +194,10 @@ class MatchConsumer extends Consumer {
                 value: token
             }
         }
-        for(let rule of this._next){
+        for (let rule of this._next) {
             let c = this.parser.resolveConsumer(rule);
-            if(c.accept(str)){
-                yield *c.consume(str);
+            if (c.accept(str)) {
+                yield* c.consume(str);
                 break;
             }
         }
@@ -238,27 +255,30 @@ export class Parser {
         }
         let rule = this.entries[entry];
         let consumer = this.resolveConsumer(rule);
-        let result: (Token | string)[] = [];
-        for (let res of consumer.consume(str)) {
-            if(res.action !== ConsumerAction.SKIP){
-                if(typeof res.value === 'string'){
-                    let {length, [length - 1]: last} = result;
-                    if(typeof last !== 'string'){
-                        result.push('');
-                        length++;
+        let _result: (Token | string)[] = [];
+        let result = new Proxy(_result, ArrLast) as HasLastArr<Token | string>;
+        if(consumer.accept(str)){
+            for (let res of consumer.consume(str)) {
+                if (res.action !== ConsumerAction.SKIP) {
+                    if (typeof res.value === 'string') {
+                        if (typeof result.last !== 'string') {
+                            result.push('');
+                        }
+                        result.last += res.value;
+                    } else {
+                        result.push(res.value);
                     }
-                    (result as string[])[length - 1] += res.value;
-                } else {
-                    result.push(res.value);
+                }
+                if (res.action === ConsumerAction.COMMIT) {
+                    break;
+                } else if (res.action === ConsumerAction.HALT) {
+                    throw new Error('Syntax Error');
                 }
             }
-            if(res.action === ConsumerAction.COMMIT){
-                break;
-            } else if (res.action === ConsumerAction.HALT){
-                throw new Error('Syntax Error');
-            }
+            return _result;
+        } else {
+            throw new Error('Syntax Error at > ' + str.slice(0, 10));
         }
-        return result;
     }
 
     serialize(): SerializedParser {
