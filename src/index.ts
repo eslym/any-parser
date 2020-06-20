@@ -4,7 +4,7 @@ import {Schema, Validator} from "jsonschema";
 const ParserSchema: Schema = require("../schema/parser.json");
 
 function deepLoop(rules: Rule[], rule: Rule) {
-    if(rules.indexOf(rule) !== -1){
+    if (rules.indexOf(rule) !== -1) {
         return;
     }
     rules.push(rule);
@@ -18,26 +18,27 @@ function deepLoop(rules: Rule[], rule: Rule) {
 
 interface ParserEntries {
     default: Rule;
+
     [name: string]: Rule;
 }
 
-function loadRule(rules: SerializedRule[], index: number): Rule{
+function loadRule(rules: SerializedRule[], index: number): Rule {
     let rule: any = rules[index];
-    if(!rule.hasOwnProperty('__rule')){
+    if (!rule.hasOwnProperty('__rule')) {
         rule.__rule = {
             test: rule.test,
         };
-        if(rule.hasOwnProperty('action')){
+        if (rule.hasOwnProperty('action')) {
             rule.__rule.action = rule.action;
         }
-        if(rule.hasOwnProperty('token')){
+        if (rule.hasOwnProperty('token')) {
             rule.__rule.token = rule.token;
         }
-        if(rule.hasOwnProperty('children')){
-            rule.__rule.children = rule.children.map(i=>loadRule(rules, i));
+        if (rule.hasOwnProperty('children')) {
+            rule.__rule.children = rule.children.map(i => loadRule(rules, i));
         }
-        if(rule.hasOwnProperty('next')){
-            rule.__rule.next = rule.next.map(i=>loadRule(rules, i));
+        if (rule.hasOwnProperty('next')) {
+            rule.__rule.next = rule.next.map(i => loadRule(rules, i));
         }
     }
     return rule.__rule;
@@ -53,7 +54,7 @@ enum ConsumerAction {
 export interface Token {
     name: string;
     value: string;
-    children: [];
+    children: (Token | string)[];
 }
 
 interface ConsumerResult {
@@ -71,7 +72,9 @@ abstract class Consumer {
         this.action = action;
     }
 
-    abstract consume(str: string, callback:(res: ConsumerResult)=>void): void;
+    abstract consume(str: string): Generator<ConsumerResult>;
+
+    public abstract accept(str: string): boolean;
 }
 
 class FallbackConsumer extends Consumer {
@@ -82,11 +85,14 @@ class FallbackConsumer extends Consumer {
         this.action = action;
     }
 
-    consume(str: string, callback:(res: ConsumerResult)=>void): boolean{
-        callback({
+    * consume(str: string): Generator<ConsumerResult> {
+        yield {
             action: this.action,
             consumed: 0,
-        });
+        };
+    }
+
+    accept(str: string): boolean {
         return true;
     }
 }
@@ -95,6 +101,7 @@ class MatchConsumer extends Consumer {
     set children(value: Rule[]) {
         this._children = value ?? [];
     }
+
     set next(value: Rule[]) {
         this._next = value ?? [];
     }
@@ -104,79 +111,105 @@ class MatchConsumer extends Consumer {
     protected test: RuleTest;
     protected token?: string = undefined;
 
-    constructor(parser: Parser, action: ConsumerAction, test: 'char' | {pattern: string, flags?: string}, token?: string) {
+    constructor(parser: Parser, action: ConsumerAction, test: 'char' | { pattern: string, flags?: string }, token?: string) {
         super(parser, action);
         this.test = test;
         this.token = token;
     }
 
-    consume(str: string, callback:(res: ConsumerResult)=>void): boolean{
-        let match = str.match(this.testRegex());
-        if(!match){
-            return false;
-        }
-        let val: Token | string = match[0];
-        if(this._children.length > 0){
-            if(typeof this.token === 'undefined'){
-                callback({
-                    action: this.action,
-                    consumed: match[0].length,
-                    value: val,
-                });
-            } else {
-                let consumed = val.length;
-                str = str.slice(val.length);
-                val = {
-                    name: this.token,
-                    value: val,
-                    children: [],
-                };
-                let loopChild = true;
-                while (loopChild){
-                    for(let r of this._children){
-                        let c = this.parser.resolveConsumer(r);
-
+    * consume(str: string): Generator<ConsumerResult> {
+        let val = str.match(this.testRegex())[0];
+        str = str.slice(val.length);
+        if (this.token === undefined) {
+            yield {
+                action: this.action,
+                consumed: val.length,
+                value: val,
+            }
+        } else {
+            let token: Token = {
+                name: this.token,
+                value: val,
+                children: []
+            }
+            let children = token.children;
+            let consumed = val.length;
+            if (this._children.length !== 0) {
+                let loop = true;
+                while (loop){
+                    let resolved = false;
+                    for(let rule of this._children[Symbol.iterator]()){
+                        let c = this.parser.resolveConsumer(rule);
+                        if(c.accept(str)){
+                            for(let res of c.consume(str)){
+                                if(res.action !== ConsumerAction.SKIP){
+                                    if(typeof res.value === 'string'){
+                                        let {length, [length - 1]: last} = children;
+                                        if(typeof last !== 'string'){
+                                            children.push('');
+                                            length++;
+                                        }
+                                        (children as string[])[length - 1] += res.value;
+                                    } else if (typeof res.value !== 'undefined') {
+                                        children.push(res.value);
+                                    }
+                                }
+                                str = str.slice(res.consumed);
+                                consumed += res.consumed;
+                                if(res.action === ConsumerAction.COMMIT){
+                                    loop = false;
+                                } else if (res.action === ConsumerAction.HALT){
+                                    throw new Error('Syntax Error');
+                                }
+                            }
+                            resolved = true;
+                            break;
+                        }
+                    }
+                    if(!resolved){
+                        break;
                     }
                 }
             }
-        } else {
-            if(typeof this.token !== 'undefined'){
-                val = {
-                    name: this.token,
-                    value: val,
-                    children: [],
-                };
-            }
-            callback({
+            yield {
                 action: this.action,
-                consumed: match[0].length,
-                value: val,
-            });
+                consumed: consumed,
+                value: token
+            }
         }
-        if(this._next.length > 0){
-
+        for(let rule of this._next){
+            let c = this.parser.resolveConsumer(rule);
+            if(c.accept(str)){
+                yield *c.consume(str);
+                break;
+            }
         }
     }
 
-    protected testRegex(){
-        if(typeof this.test === 'string'){
+    protected testRegex(): RegExp {
+        if (typeof this.test === 'string') {
             return /^[\s\S]/m;
         }
         return new RegExp(`^(?:${this.test.pattern})`, this.test.flags);
     }
+
+    accept(str: string): boolean {
+        return str.match(this.testRegex()) !== null;
+    }
 }
 
 export class Parser {
-    static load(parser: SerializedParser){
+    static load(parser: SerializedParser) {
         let validator = new Validator();
         validator.validate(parser, ParserSchema, {throwError: true});
         let cloned: SerializedParser = JSON.parse(JSON.stringify(parser));
         let p: any = {
             entries: {},
             rules: [],
+            consumer: [],
         } as any;
         p.__proto__ = Parser.prototype;
-        for(let entry of Object.entries(cloned.entries)) {
+        for (let entry of Object.entries(cloned.entries)) {
             p.addEntry(entry[0], loadRule(cloned.rules, entry[1]));
         }
         return p;
@@ -186,23 +219,51 @@ export class Parser {
 
     protected readonly rules: Rule[] = [];
 
-    protected consumer: Consumer[];
+    protected consumer: Consumer[] = [];
 
     constructor(rule: Rule) {
         this.entries = {default: rule};
         deepLoop(this.rules, rule);
     }
 
-    addEntry(name:string, rule: Rule): this{
+    addEntry(name: string, rule: Rule): this {
         this.entries[name] = rule;
         deepLoop(this.rules, rule);
-
         return this;
+    }
+
+    parse(str: string, entry?: string): (Token | string)[] {
+        if (typeof entry === "undefined") {
+            entry = 'default';
+        }
+        let rule = this.entries[entry];
+        let consumer = this.resolveConsumer(rule);
+        let result: (Token | string)[] = [];
+        for (let res of consumer.consume(str)) {
+            if(res.action !== ConsumerAction.SKIP){
+                if(typeof res.value === 'string'){
+                    let {length, [length - 1]: last} = result;
+                    if(typeof last !== 'string'){
+                        result.push('');
+                        length++;
+                    }
+                    (result as string[])[length - 1] += res.value;
+                } else {
+                    result.push(res.value);
+                }
+            }
+            if(res.action === ConsumerAction.COMMIT){
+                break;
+            } else if (res.action === ConsumerAction.HALT){
+                throw new Error('Syntax Error');
+            }
+        }
+        return result;
     }
 
     serialize(): SerializedParser {
         let entries: any = {};
-        for(let e of Object.entries(this.entries)){
+        for (let e of Object.entries(this.entries)) {
             entries[e[0]] = this.rules.indexOf(e[1]);
         }
         let data: SerializedParser = {
@@ -226,10 +287,10 @@ export class Parser {
                     r.token = rule.token;
                 }
                 if (rule.hasOwnProperty('children')) {
-                    r.children = rule.children.map(r=>this.rules.indexOf(r));
+                    r.children = rule.children.map(r => this.rules.indexOf(r));
                 }
                 if (rule.hasOwnProperty('next')) {
-                    r.next = rule.next.map(r=>this.rules.indexOf(r));
+                    r.next = rule.next.map(r => this.rules.indexOf(r));
                 }
                 return r;
             }
@@ -237,13 +298,13 @@ export class Parser {
         return data;
     }
 
-    resolveConsumer(rule: Rule): Consumer{
+    resolveConsumer(rule: Rule): Consumer {
         let index = this.rules.indexOf(rule);
-        if(index === -1){
+        if (index === -1) {
             return undefined;
         }
-        if(typeof this.consumer[index] === 'undefined'){
-            if(rule.test === 'fallback'){
+        if (typeof this.consumer[index] === 'undefined') {
+            if (rule.test === 'fallback') {
                 this.consumer[index] = new FallbackConsumer(this, rule.action as any);
             } else if (rule.test === 'extend') {
 
