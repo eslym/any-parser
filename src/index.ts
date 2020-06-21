@@ -7,9 +7,11 @@ const ArrayAccessor = {
     get(arr: any[], prop, receiver?: any) {
         switch (prop) {
             case 'last':
-                prop = arr.length - 1
+                prop = arr.length - 1;
+                break;
             case 'first':
-                prop = 0
+                prop = 0;
+                break;
         }
         return Reflect.get(arr, prop, receiver);
     },
@@ -17,8 +19,10 @@ const ArrayAccessor = {
         switch (prop) {
             case 'last':
                 prop = arr.length - 1;
+                break;
             case 'first':
                 prop = 0;
+                break;
         }
         return Reflect.set(arr, prop, value, receiver);
     },
