@@ -26,6 +26,8 @@ declare abstract class Consumer {
     abstract consume(str: string): Generator<ConsumerResult>;
     abstract accept(str: string): boolean;
 }
+export declare class ParserError extends Error {
+}
 export declare class Parser {
     static load(parser: SerializedParser): any;
     protected readonly entries: ParserEntries;

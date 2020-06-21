@@ -237,62 +237,55 @@ class ExtendConsumer extends MatchConsumer {
     * consume(str: string): Generator<ConsumerResult> {
         let consumed = 0;
         let resolved = false;
-        if (typeof this.token !== "undefined") {
-            let token: Token = {
-                name: this.token,
-                value: "",
-                children: [],
-            };
-            let value: AccessibleArray<Token | string> = new Proxy(token.children, ArrayAccessor);
-            for (let rule of this._children) {
-                let consumer = this.parser.resolveConsumer(rule);
-                if (consumer.accept(str)) {
-                    resolved = true;
-                    for (let res of consumer.consume(str)) {
-                        if (res.action !== ConsumerAction.SKIP) {
-                            if (typeof res.value === 'string') {
-                                if (typeof value.last !== 'string') {
-                                    value.push('');
-                                }
-                                value.last += res.value;
-                            } else if (typeof res.value !== "undefined")  {
-                                value.push(res.value);
+        let result: (Token | string)[] = [];
+        let value: AccessibleArray<Token | string> = new Proxy(result, ArrayAccessor);
+        let forward: ConsumerResult[] = [];
+        for (let rule of this._children) {
+            let consumer = this.parser.resolveConsumer(rule);
+            if (consumer.accept(str)) {
+                resolved = true;
+                for (let res of consumer.consume(str)) {
+                    if (res.action !== ConsumerAction.SKIP) {
+                        if (typeof res.value === 'string') {
+                            if (typeof value.last !== 'string') {
+                                value.push('');
                             }
+                            value.last += res.value;
+                        } else if (typeof res.value !== "undefined") {
+                            value.push(res.value);
                         }
-                        consumed += res.consumed;
-                        if (res.action === ConsumerAction.HALT) {
-                            throw new ParserError('Unrecognized pattern at > ' + str.slice(0, 10));
-                        }
-                    } // end for consume
-                    break; // for children
-                } // end if accept
-            } // end for children
-            if (resolved) {
-                yield {
-                    action: this.action,
-                    consumed: consumed,
-                    value: token,
-                }
-            } else {
-                throw new ParserError('Unrecognized pattern at > ' + str.slice(0, 10));
-            }
-        } else { // unless token
-            let resolved = false;
-            for (let rule of this._children) {
-                let consumer = this.parser.resolveConsumer(rule);
-                if (consumer.accept(str)) {
-                    resolved = true;
-                    for (let res of consumer.consume(str)) {
-                        consumed += res.consumed;
-                        yield res;
                     }
-                    break;
+                    forward.push(res);
+                    consumed += res.consumed;
+                    if (res.action === ConsumerAction.HALT) {
+                        consumed = 0;
+                        result.splice(0, result.length);
+                        forward = [];
+                        resolved = false;
+                        break;
+                    }
+                } // end for consume
+                if(resolved){
+                    break; // for children
                 }
+            } // end if accept
+        } // end for children
+        if (!resolved) {
+            throw new ParserError('Unrecognized pattern at > ' + str.slice(0, 10));
+        }
+        if(typeof this.token !== 'undefined'){
+            yield {
+                action: this.action,
+                consumed: consumed,
+                value: {
+                    name: this.token,
+                    value: '',
+                    children: result,
+                },
             }
-            if (!resolved) {
-                throw new ParserError('Unrecognized pattern at > ' + str.slice(0, 10));
-            }
-        } // end if token
+        } else {
+            yield * forward[Symbol.iterator]() as Generator<ConsumerResult>;
+        }
         str = str.slice(consumed);
         for (let rule of this._next) {
             let c = this.parser.resolveConsumer(rule);
@@ -304,7 +297,8 @@ class ExtendConsumer extends MatchConsumer {
     }
 }
 
-export class ParserError extends Error{}
+export class ParserError extends Error {
+}
 
 export class Parser {
     static load(parser: SerializedParser) {
