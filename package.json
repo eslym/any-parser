@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "General string parser",
   "main": "dist/index.js",
+  "repository": {
+    "url": "https://github.com/eslym/any-parser.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node tasks/clean.js && tsc --build && npm run schema && node tasks/build-presets.js",
