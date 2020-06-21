@@ -52,7 +52,7 @@ let val = rule('extend')
         exports.BooleanRule, exports.NullRule
     )
 
-let listEnd = rule({pattern: /\s*?]/.source})
+let listEnd = rule({pattern: /\s*]/.source})
     .action('skip')
     .next(rule.fallback.commit);
 
@@ -61,13 +61,13 @@ let listItem = rule('extend')
     .children(val)
     .next(listEnd);
 
-let listSap = rule({pattern: /\s*?,\s*?/.source})
+let listSap = rule({pattern: /\s*,\s*/.source})
     .action("skip")
     .next(listItem, rule.fallback.halt);
 
 listItem.next(listSap, rule.fallback.halt);
 
-exports.ArrayRule = rule({pattern: /\[\s*?/.source})
+exports.ArrayRule = rule({pattern: /\[\s*/.source})
     .token('ARRAY')
     .children(listItem);
 
@@ -92,7 +92,7 @@ let entry = rule('extend')
     .children(key)
     .next(objEnd);
 
-let entrySap = rule({pattern: /\s*?,\s*?/.source})
+let entrySap = rule({pattern: /\s*,\s*/.source})
     .action("skip")
     .next(entry, rule.fallback.halt);
 
@@ -105,11 +105,13 @@ exports.ObjectRule = rule({pattern: /{\s*/.source})
 val.children(exports.ObjectRule);
 
 exports.default = rule({pattern: /\s*/.source})
+    .action('skip')
     .next(
         rule('extend')
             .children(val)
             .next(
                 rule({pattern: /\s*$/.source})
+                    .action('skip')
                     .next(
                         rule.fallback.commit,
                         rule.fallback.halt,

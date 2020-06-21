@@ -3,23 +3,33 @@ import {Schema, Validator} from "jsonschema";
 
 const ParserSchema: Schema = require("../schema/parser.json");
 
-const ArrLast = {
+const ArrayAccessor = {
     get(arr: any[], prop, receiver?: any) {
-        if (prop === 'last') {
-            return arr[arr.length - 1];
+        switch (prop) {
+            case 'last':
+                prop = arr.length - 1
+            case 'first':
+                prop = 0
         }
         return Reflect.get(arr, prop, receiver);
     },
     set(arr: any[], prop, value, receiver?: any) {
-        if (prop === 'last' && arr.length > 0) {
-            return arr[arr.length - 1] = value;
+        switch (prop) {
+            case 'last':
+                prop = arr.length - 1;
+            case 'first':
+                prop = 0;
         }
         return Reflect.set(arr, prop, value, receiver);
+    },
+    has(target, key) {
+        return key === 'first' || key === 'last' || key in target;
     }
 };
 
-interface HasLastArr<T> extends Array<T> {
+interface AccessibleArray<T> extends Array<T> {
     last: T;
+    first: T;
 }
 
 function deepLoop(rules: Rule[], rule: Rule) {
@@ -125,8 +135,8 @@ class MatchConsumer extends Consumer {
         this._next = value ?? [];
     }
 
-    private _children: Rule[] = [];
-    private _next: Rule[] = [];
+    protected _children: Rule[] = [];
+    protected _next: Rule[] = [];
     protected test: RuleTest;
     protected token?: string = undefined;
 
@@ -151,7 +161,7 @@ class MatchConsumer extends Consumer {
                 value: val,
                 children: []
             }
-            let children = new Proxy(token.children, ArrLast) as HasLastArr<Token | string>;
+            let children = new Proxy(token.children, ArrayAccessor) as AccessibleArray<Token | string>;
             let consumed = val.length;
             if (this._children.length !== 0) {
                 let loop = true;
@@ -215,6 +225,81 @@ class MatchConsumer extends Consumer {
     }
 }
 
+class ExtendConsumer extends MatchConsumer {
+    constructor(parser: Parser, action: ConsumerAction, token?: string) {
+        super(parser, action, 'extend' as any, token);
+    }
+
+    * consume(str: string): Generator<ConsumerResult> {
+        let consumed = 0;
+        let resolved = false;
+        if (typeof this.token !== "undefined") {
+            let token: Token = {
+                name: this.token,
+                value: "",
+                children: [],
+            };
+            let value: AccessibleArray<Token | string> = new Proxy(token.children, ArrayAccessor);
+            for (let rule of this._children) {
+                let consumer = this.parser.resolveConsumer(rule);
+                if (consumer.accept(str)) {
+                    resolved = true;
+                    for (let res of consumer.consume(str)) {
+                        if (res.action !== ConsumerAction.SKIP) {
+                            if (typeof res.value === 'string') {
+                                if (typeof value.last !== 'string') {
+                                    value.push('');
+                                }
+                                value.last += res.value;
+                            } else if (typeof res.value !== "undefined")  {
+                                value.push(res.value);
+                            }
+                        }
+                        consumed += res.consumed;
+                        if (res.action === ConsumerAction.HALT) {
+                            throw new Error('Syntax Error at > ' + str.slice(0, 10));
+                        }
+                    } // end for consume
+                    break; // for children
+                } // end if accept
+            } // end for children
+            if (resolved) {
+                yield {
+                    action: this.action,
+                    consumed: consumed,
+                    value: token,
+                }
+            } else {
+                throw new Error('Syntax Error at > ' + str.slice(0, 10));
+            }
+        } else { // unless token
+            let resolved = false;
+            for (let rule of this._children) {
+                let consumer = this.parser.resolveConsumer(rule);
+                if (consumer.accept(str)) {
+                    resolved = true;
+                    for (let res of consumer.consume(str)) {
+                        consumed += res.consumed;
+                        yield res;
+                    }
+                    break;
+                }
+            }
+            if (!resolved) {
+                throw new Error('Syntax Error at > ' + str.slice(0, 10));
+            }
+        } // end if token
+        str = str.slice(consumed);
+        for (let rule of this._next) {
+            let c = this.parser.resolveConsumer(rule);
+            if (c.accept(str)) {
+                yield* c.consume(str);
+                break;
+            }
+        }
+    }
+}
+
 export class Parser {
     static load(parser: SerializedParser) {
         let validator = new Validator();
@@ -256,8 +341,8 @@ export class Parser {
         let rule = this.entries[entry];
         let consumer = this.resolveConsumer(rule);
         let _result: (Token | string)[] = [];
-        let result = new Proxy(_result, ArrLast) as HasLastArr<Token | string>;
-        if(consumer.accept(str)){
+        let result = new Proxy(_result, ArrayAccessor) as AccessibleArray<Token | string>;
+        if (consumer.accept(str)) {
             for (let res of consumer.consume(str)) {
                 if (res.action !== ConsumerAction.SKIP) {
                     if (typeof res.value === 'string') {
@@ -265,14 +350,15 @@ export class Parser {
                             result.push('');
                         }
                         result.last += res.value;
-                    } else {
+                    } else if (typeof res.value !== "undefined") {
                         result.push(res.value);
                     }
                 }
+                str = str.slice(res.consumed);
                 if (res.action === ConsumerAction.COMMIT) {
                     break;
                 } else if (res.action === ConsumerAction.HALT) {
-                    throw new Error('Syntax Error');
+                    throw new Error('Syntax Error at > ' + str.slice(0, 10));
                 }
             }
             return _result;
@@ -326,10 +412,13 @@ export class Parser {
         if (typeof this.consumer[index] === 'undefined') {
             if (rule.test === 'fallback') {
                 this.consumer[index] = new FallbackConsumer(this, rule.action as any);
-            } else if (rule.test === 'extend') {
-
             } else {
-                let c = new MatchConsumer(this, rule.action as any, rule.test, rule.token);
+                let c: MatchConsumer;
+                if (rule.test === 'extend') {
+                    c = new ExtendConsumer(this, rule.action as any ?? ConsumerAction.APPEND, rule.token);
+                } else {
+                    c = new MatchConsumer(this, rule.action as any ?? ConsumerAction.APPEND, rule.test, rule.token);
+                }
                 c.children = rule.children;
                 c.next = rule.next;
                 this.consumer[index] = c;

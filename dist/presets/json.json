@@ -14,6 +14,7 @@
       "test": {
         "pattern": "\\s*"
       },
+      "action": "skip",
       "next": [
         1,
         8
@@ -153,7 +154,7 @@
     },
     {
       "test": {
-        "pattern": "\\[\\s*?"
+        "pattern": "\\[\\s*"
       },
       "token": "ARRAY",
       "children": [
@@ -174,7 +175,7 @@
     },
     {
       "test": {
-        "pattern": "\\s*?]"
+        "pattern": "\\s*]"
       },
       "action": "skip",
       "next": [
@@ -183,7 +184,7 @@
     },
     {
       "test": {
-        "pattern": "\\s*?,\\s*?"
+        "pattern": "\\s*,\\s*"
       },
       "action": "skip",
       "next": [
@@ -246,7 +247,7 @@
     },
     {
       "test": {
-        "pattern": "\\s*?,\\s*?"
+        "pattern": "\\s*,\\s*"
       },
       "action": "skip",
       "next": [
@@ -258,6 +259,7 @@
       "test": {
         "pattern": "\\s*$"
       },
+      "action": "skip",
       "next": [
         11,
         8
