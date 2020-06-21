@@ -190,7 +190,7 @@ class MatchConsumer extends Consumer {
                                 if (res.action === ConsumerAction.COMMIT) {
                                     loop = false;
                                 } else if (res.action === ConsumerAction.HALT) {
-                                    throw new Error('Syntax Error at > ' + str.slice(0, 10));
+                                    throw new ParserError('Unrecognized pattern at > ' + str.slice(0, 10));
                                 }
                             }
                             resolved = true;
@@ -261,7 +261,7 @@ class ExtendConsumer extends MatchConsumer {
                         }
                         consumed += res.consumed;
                         if (res.action === ConsumerAction.HALT) {
-                            throw new Error('Syntax Error at > ' + str.slice(0, 10));
+                            throw new ParserError('Unrecognized pattern at > ' + str.slice(0, 10));
                         }
                     } // end for consume
                     break; // for children
@@ -274,7 +274,7 @@ class ExtendConsumer extends MatchConsumer {
                     value: token,
                 }
             } else {
-                throw new Error('Syntax Error at > ' + str.slice(0, 10));
+                throw new ParserError('Unrecognized pattern at > ' + str.slice(0, 10));
             }
         } else { // unless token
             let resolved = false;
@@ -290,7 +290,7 @@ class ExtendConsumer extends MatchConsumer {
                 }
             }
             if (!resolved) {
-                throw new Error('Syntax Error at > ' + str.slice(0, 10));
+                throw new ParserError('Unrecognized pattern at > ' + str.slice(0, 10));
             }
         } // end if token
         str = str.slice(consumed);
@@ -303,6 +303,8 @@ class ExtendConsumer extends MatchConsumer {
         }
     }
 }
+
+export class ParserError extends Error{}
 
 export class Parser {
     static load(parser: SerializedParser) {
@@ -362,12 +364,12 @@ export class Parser {
                 if (res.action === ConsumerAction.COMMIT) {
                     break;
                 } else if (res.action === ConsumerAction.HALT) {
-                    throw new Error('Syntax Error at > ' + str.slice(0, 10));
+                    throw new ParserError('Unrecognized pattern at > ' + str.slice(0, 10));
                 }
             }
             return _result;
         } else {
-            throw new Error('Syntax Error at > ' + str.slice(0, 10));
+            throw new ParserError('Unrecognized pattern at > ' + str.slice(0, 10));
         }
     }
 
