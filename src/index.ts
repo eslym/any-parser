@@ -325,7 +325,7 @@ export class Parser {
 
     protected readonly entries: ParserEntries;
 
-    protected readonly rules: Rule[] = [];
+    protected rules: Rule[] = [];
 
     protected consumer: Consumer[] = [];
 
@@ -338,6 +338,26 @@ export class Parser {
         this.entries[name] = rule;
         deepLoop(this.rules, rule);
         return this;
+    }
+
+    getEntry(name: string): Rule {
+        return this.entries[name];
+    }
+
+    deleteEntry(name: string) {
+        delete this.entries[name];
+    }
+
+    getEntries(): string[] {
+        return Object.keys(this.entries);
+    }
+
+    prune() {
+        let rules = [];
+        for(let entry of Object.values(this.entries)){
+            deepLoop(rules, entry);
+        }
+        this.rules = rules;
     }
 
     parse(str: string, entry?: string): (Token | string)[] {

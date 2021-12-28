@@ -31,10 +31,14 @@ export declare class ParserError extends Error {
 export declare class Parser {
     static load(parser: SerializedParser): any;
     protected readonly entries: ParserEntries;
-    protected readonly rules: Rule[];
+    protected rules: Rule[];
     protected consumer: Consumer[];
     constructor(rule: Rule);
     addEntry(name: string, rule: Rule): this;
+    getEntry(name: string): Rule;
+    deleteEntry(name: string): void;
+    getEntries(): string[];
+    prune(): void;
     parse(str: string, entry?: string): (Token | string)[];
     serialize(): SerializedParser;
     resolveConsumer(rule: Rule): Consumer;
