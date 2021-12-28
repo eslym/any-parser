@@ -3,12 +3,12 @@ import {rule} from '../rules';
 const stringRule = rule(/"/)
     .token('STRING')
     .children(
-        rule({pattern: /\\/.source})
+        rule( /\\/)
             .action('skip')
             .next(
                 rule(/["\\\/bfnr]/)
                     .token('ESCAPE'),
-                rule({pattern: /u/.source})
+                rule( /u/)
                     .action('skip')
                     .next(
                         rule(/[0-9a-f]{4}/i)
@@ -17,8 +17,8 @@ const stringRule = rule(/"/)
                     ),
                 rule.fallback.halt,
             ),
-        rule({pattern: /[\x00-\x1f\x7f\x80-\x9f]/.source}).action('halt'),
-        rule({pattern: '"'})
+        rule( /[\x00-\x1f\x7f\x80-\x9f]/).action('halt'),
+        rule(/"/)
             .action('skip')
             .next(rule.fallback.commit),
         rule.char.append,
@@ -122,7 +122,7 @@ const jsonRule = rule(/\s*/)
         rule('extend')
             .children(val)
             .next(
-                rule({pattern: /\s*$/.source})
+                rule( /\s*$/)
                     .action('skip')
                     .next(
                         rule.fallback.commit,
