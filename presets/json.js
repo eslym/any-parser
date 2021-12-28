@@ -1,17 +1,17 @@
 const rule = require('../dist/rules').rule;
 
-exports.StringRule = rule({pattern: /"/.source})
+exports.StringRule = rule(/"/)
     .token('STRING')
     .children(
         rule({pattern: /\\/.source})
             .action('skip')
             .next(
-                rule({pattern: /["\\\/bfnr]/.source})
+                rule(/["\\\/bfnr]/)
                     .token('ESCAPE'),
                 rule({pattern: /u/.source})
                     .action('skip')
                     .next(
-                        rule({pattern: /[0-9a-f]{4}/.source, flags:'i'})
+                        rule(/[0-9a-f]{4}/i)
                             .token('UNICODE'),
                         rule.fallback.halt,
                     ),
@@ -25,24 +25,24 @@ exports.StringRule = rule({pattern: /"/.source})
         rule.fallback.halt
     );
 
-let exponent = rule({pattern: /[eE][-+]?\d+/.source})
+let exponent = rule(/[eE][-+]?\d+/)
     .token('EXPONENT');
 
-let fraction = rule({pattern: /.\d+/.source})
+let fraction = rule(/.\d+/)
     .token('FRACTION')
     .next(exponent);
 
-exports.NumberRule = rule({pattern: /-?(?:0|[1-9]\d+)/.source})
+exports.NumberRule = rule(/-?(?:0|[1-9]\d+)/)
     .token('NUMBER')
     .children(
         fraction,
         exponent,
     );
 
-exports.BooleanRule = rule({pattern: /true|false/.source})
+exports.BooleanRule = rule(/true|false/)
     .token('BOOEAN');
 
-exports.NullRule = rule({pattern: 'null'})
+exports.NullRule = rule(/null/)
     .token('NULL');
 
 let val = rule('extend')
@@ -52,7 +52,7 @@ let val = rule('extend')
         exports.BooleanRule, exports.NullRule
     )
 
-let listEnd = rule({pattern: /\s*]/.source})
+let listEnd = rule(/\s*]/)
     .action('skip')
     .next(rule.fallback.commit);
 
@@ -61,13 +61,13 @@ let listItem = rule('extend')
     .children(val)
     .next(listEnd);
 
-let listSap = rule({pattern: /\s*,\s*/.source})
+let listSap = rule(/\s*,\s*/)
     .action("skip")
     .next(listItem, rule.fallback.halt);
 
 listItem.next(listSap, rule.fallback.halt);
 
-exports.ArrayRule = rule({pattern: /\[\s*/.source})
+exports.ArrayRule = rule(/\[\s*/)
     .token('ARRAY')
     .children(listItem);
 
@@ -77,13 +77,13 @@ let key = rule('extend')
     .token('KEY')
     .children(exports.StringRule)
     .next(
-        rule({pattern: /\s*:\s*/.source})
+        rule(/\s*:\s*/)
             .action('skip')
             .next(val, rule.fallback.halt),
         rule.fallback.halt
     )
 
-let objEnd = rule({pattern: /\s*}/.source})
+let objEnd = rule(/\s*}/)
     .action('skip')
     .next(rule.fallback.commit);
 
@@ -92,19 +92,19 @@ let entry = rule('extend')
     .children(key)
     .next(objEnd);
 
-let entrySap = rule({pattern: /\s*,\s*/.source})
+let entrySap = rule(/\s*,\s*/)
     .action("skip")
     .next(entry, rule.fallback.halt);
 
 entry.next(entrySap, rule.fallback.halt);
 
-exports.ObjectRule = rule({pattern: /{\s*/.source})
+exports.ObjectRule = rule(/{\s*/)
     .token('OBJECT')
     .children(entry, objEnd, rule.fallback.halt);
 
 val.children(exports.ObjectRule);
 
-exports.default = rule({pattern: /\s*/.source})
+exports.default = rule(/\s*/)
     .action('skip')
     .next(
         rule('extend')

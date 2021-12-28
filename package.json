@@ -3,6 +3,7 @@
   "version": "1.0.1",
   "description": "General string parser",
   "main": "dist/index.js",
+  "files": ["dist/**"],
   "repository": {
     "url": "https://github.com/eslym/any-parser.git"
   },

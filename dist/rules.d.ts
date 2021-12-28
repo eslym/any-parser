@@ -1,7 +1,7 @@
 export declare type RuleTest = 'char' | 'extend' | 'fallback' | {
     pattern: string;
     flags?: string;
-};
+} | RegExp;
 export declare type RuleAction = 'append' | 'commit' | 'halt' | 'skip';
 export declare type Rule = FallbackRule | MatchRule;
 export interface BaseRule {
@@ -44,6 +44,7 @@ interface SerializedMatchRule extends BaseRule {
     next?: number[];
 }
 export declare class RuleBuilder implements RuleHolder<Rule> {
+    #private;
     static fallback: {
         readonly commit: RuleHolder<FallbackRule> | RuleBuilder;
         readonly halt: RuleHolder<FallbackRule> | RuleBuilder;
@@ -53,7 +54,6 @@ export declare class RuleBuilder implements RuleHolder<Rule> {
         readonly skip: RuleHolder<MatchRule> | RuleBuilder;
     };
     get rule(): Rule;
-    private readonly _rule;
     constructor(test: RuleTest);
     token(name: string): this;
     action(action: RuleAction): this;
@@ -70,7 +70,6 @@ interface RuleFunction {
         readonly skip: RuleHolder<MatchRule> | RuleBuilder;
     };
     (test: RuleTest): RuleBuilder;
-    new (test: RuleTest): RuleBuilder;
 }
 export declare const rule: RuleFunction;
 export {};

@@ -139,12 +139,14 @@ class MatchConsumer extends Consumer {
         this._next = value ?? [];
     }
 
+    #test?: RegExp;
+
     protected _children: Rule[] = [];
     protected _next: Rule[] = [];
     protected test: RuleTest;
     protected token?: string = undefined;
 
-    constructor(parser: Parser, action: ConsumerAction, test: 'char' | { pattern: string, flags?: string }, token?: string) {
+    constructor(parser: Parser, action: ConsumerAction, test: 'char' | { pattern: string, flags?: string } | RegExp, token?: string) {
         super(parser, action);
         this.test = test;
         this.token = token;
@@ -218,10 +220,14 @@ class MatchConsumer extends Consumer {
     }
 
     protected testRegex(): RegExp {
+        if(this.#test) return this.#test;
         if (typeof this.test === 'string') {
-            return /^[\s\S]/m;
+            return this.#test = /^[\s\S]/m;
         }
-        return new RegExp(`^(?:${this.test.pattern})`, this.test.flags);
+        let {pattern, flags} = this.test instanceof RegExp ?
+            {pattern: this.test.source, flags: this.test.flags}:
+            this.test;
+        return this.#test = new RegExp(`^(?:${pattern})`, flags);
     }
 
     accept(str: string): boolean {
@@ -384,7 +390,9 @@ export class Parser {
                 }
             } else {
                 let r: SerializedRule = {
-                    test: rule.test,
+                    test: rule.test instanceof RegExp ?
+                        {pattern: rule.test.source, flags: rule.test.flags}:
+                        rule.test,
                 };
                 if (rule.hasOwnProperty('action')) {
                     r.action = rule.action;

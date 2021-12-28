@@ -1,60 +1,62 @@
 "use strict";
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, privateMap, value) {
+    if (!privateMap.has(receiver)) {
+        throw new TypeError("attempted to set private field on non-instance");
+    }
+    privateMap.set(receiver, value);
+    return value;
+};
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, privateMap) {
+    if (!privateMap.has(receiver)) {
+        throw new TypeError("attempted to get private field on non-instance");
+    }
+    return privateMap.get(receiver);
+};
+var _rule;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.rule = exports.RuleBuilder = void 0;
-var RuleBuilder = /** @class */ (function () {
-    function RuleBuilder(test) {
-        if (!(this instanceof RuleBuilder)) {
-            return new RuleBuilder(test);
-        }
-        this._rule = { test: test };
+class RuleBuilder {
+    constructor(test) {
+        _rule.set(this, void 0);
+        __classPrivateFieldSet(this, _rule, { test: test });
     }
-    Object.defineProperty(RuleBuilder.prototype, "rule", {
-        get: function () {
-            return this._rule;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    RuleBuilder.prototype.token = function (name) {
-        this._rule.token = name;
+    get rule() {
+        return __classPrivateFieldGet(this, _rule);
+    }
+    token(name) {
+        __classPrivateFieldGet(this, _rule).token = name;
         return this;
-    };
-    RuleBuilder.prototype.action = function (action) {
-        this._rule.action = action;
+    }
+    action(action) {
+        __classPrivateFieldGet(this, _rule).action = action;
         return this;
-    };
-    RuleBuilder.prototype.children = function () {
-        var rules = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            rules[_i] = arguments[_i];
+    }
+    children(...rules) {
+        if (__classPrivateFieldGet(this, _rule).children === undefined) {
+            __classPrivateFieldGet(this, _rule).children = [];
         }
-        if (this._rule.children === undefined) {
-            this._rule.children = [];
-        }
-        Array.prototype.push.apply(this._rule.children, rules.map(function (r) { return r.rule; }));
+        Array.prototype.push.apply(__classPrivateFieldGet(this, _rule).children, rules.map((r) => r.rule));
         return this;
-    };
-    RuleBuilder.prototype.next = function () {
-        var rules = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            rules[_i] = arguments[_i];
+    }
+    next(...rules) {
+        if (__classPrivateFieldGet(this, _rule).next === undefined) {
+            __classPrivateFieldGet(this, _rule).next = [];
         }
-        if (this._rule.next === undefined) {
-            this._rule.next = [];
-        }
-        Array.prototype.push.apply(this._rule.next, rules.map(function (r) { return r.rule; }));
+        Array.prototype.push.apply(__classPrivateFieldGet(this, _rule).next, rules.map((r) => r.rule));
         return this;
-    };
-    RuleBuilder.fallback = {
-        commit: (new RuleBuilder('fallback')).action('commit'),
-        halt: (new RuleBuilder('fallback')).action('halt'),
-    };
-    RuleBuilder.char = {
-        append: (new RuleBuilder('char')).action('append'),
-        skip: (new RuleBuilder('char')).action('skip'),
-    };
-    return RuleBuilder;
-}());
+    }
+}
 exports.RuleBuilder = RuleBuilder;
-exports.rule = RuleBuilder;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicnVsZXMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvcnVsZXMudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBK0NBO0lBdUJJLHFCQUFZLElBQWM7UUFDdEIsSUFBRyxDQUFDLENBQUMsSUFBSSxZQUFZLFdBQVcsQ0FBQyxFQUFDO1lBQzlCLE9BQU8sSUFBSSxXQUFXLENBQUMsSUFBSSxDQUFDLENBQUM7U0FDaEM7UUFDRCxJQUFJLENBQUMsS0FBSyxHQUFHLEVBQUUsSUFBSSxFQUFFLElBQUksRUFBRSxDQUFDO0lBQ2hDLENBQUM7SUFYRCxzQkFBSSw2QkFBSTthQUFSO1lBQ0ksT0FBTyxJQUFJLENBQUMsS0FBSyxDQUFDO1FBQ3RCLENBQUM7OztPQUFBO0lBV0QsMkJBQUssR0FBTCxVQUFNLElBQVk7UUFDZCxJQUFJLENBQUMsS0FBSyxDQUFDLEtBQUssR0FBRyxJQUFJLENBQUM7UUFDeEIsT0FBTyxJQUFJLENBQUM7SUFDaEIsQ0FBQztJQUVELDRCQUFNLEdBQU4sVUFBTyxNQUFrQjtRQUNyQixJQUFJLENBQUMsS0FBSyxDQUFDLE1BQU0sR0FBRyxNQUFNLENBQUM7UUFDM0IsT0FBTyxJQUFJLENBQUM7SUFDaEIsQ0FBQztJQUVELDhCQUFRLEdBQVI7UUFBUyxlQUE0QjthQUE1QixVQUE0QixFQUE1QixxQkFBNEIsRUFBNUIsSUFBNEI7WUFBNUIsMEJBQTRCOztRQUNqQyxJQUFHLElBQUksQ0FBQyxLQUFLLENBQUMsUUFBUSxLQUFLLFNBQVMsRUFBQztZQUNqQyxJQUFJLENBQUMsS0FBSyxDQUFDLFFBQVEsR0FBRyxFQUFFLENBQUM7U0FDNUI7UUFDRCxLQUFLLENBQUMsU0FBUyxDQUFDLElBQUksQ0FBQyxLQUFLLENBQ3RCLElBQUksQ0FBQyxLQUFLLENBQUMsUUFBUSxFQUNuQixLQUFLLENBQUMsR0FBRyxDQUFDLFVBQUMsQ0FBQyxJQUFLLE9BQUEsQ0FBQyxDQUFDLElBQUksRUFBTixDQUFNLENBQUMsQ0FDM0IsQ0FBQztRQUNGLE9BQU8sSUFBSSxDQUFDO0lBQ2hCLENBQUM7SUFFRCwwQkFBSSxHQUFKO1FBQUssZUFBNEI7YUFBNUIsVUFBNEIsRUFBNUIscUJBQTRCLEVBQTVCLElBQTRCO1lBQTVCLDBCQUE0Qjs7UUFDN0IsSUFBRyxJQUFJLENBQUMsS0FBSyxDQUFDLElBQUksS0FBSyxTQUFTLEVBQUM7WUFDN0IsSUFBSSxDQUFDLEtBQUssQ0FBQyxJQUFJLEdBQUcsRUFBRSxDQUFDO1NBQ3hCO1FBQ0QsS0FBSyxDQUFDLFNBQVMsQ0FBQyxJQUFJLENBQUMsS0FBSyxDQUN0QixJQUFJLENBQUMsS0FBSyxDQUFDLElBQUksRUFDZixLQUFLLENBQUMsR0FBRyxDQUFDLFVBQUMsQ0FBQyxJQUFLLE9BQUEsQ0FBQyxDQUFDLElBQUksRUFBTixDQUFNLENBQUMsQ0FDM0IsQ0FBQztRQUNGLE9BQU8sSUFBSSxDQUFDO0lBQ2hCLENBQUM7SUEzRE0sb0JBQVEsR0FHWDtRQUNBLE1BQU0sRUFBRSxDQUFDLElBQUksV0FBVyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUMsTUFBTSxDQUFDLFFBQVEsQ0FBQztRQUN0RCxJQUFJLEVBQUUsQ0FBQyxJQUFJLFdBQVcsQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLE1BQU0sQ0FBQyxNQUFNLENBQUM7S0FDckQsQ0FBQztJQUVLLGdCQUFJLEdBR1A7UUFDQSxNQUFNLEVBQUUsQ0FBQyxJQUFJLFdBQVcsQ0FBQyxNQUFNLENBQUMsQ0FBQyxDQUFDLE1BQU0sQ0FBQyxRQUFRLENBQUM7UUFDbEQsSUFBSSxFQUFFLENBQUMsSUFBSSxXQUFXLENBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQyxNQUFNLENBQUMsTUFBTSxDQUFDO0tBQ2pELENBQUE7SUE4Q0wsa0JBQUM7Q0FBQSxBQTdERCxJQTZEQztBQTdEWSxrQ0FBVztBQTRFWCxRQUFBLElBQUksR0FBaUIsV0FBa0IsQ0FBQyJ9
+_rule = new WeakMap();
+RuleBuilder.fallback = {
+    commit: (new RuleBuilder('fallback')).action('commit'),
+    halt: (new RuleBuilder('fallback')).action('halt'),
+};
+RuleBuilder.char = {
+    append: (new RuleBuilder('char')).action('append'),
+    skip: (new RuleBuilder('char')).action('skip'),
+};
+exports.rule = ((test) => new RuleBuilder(test));
+exports.rule.fallback = RuleBuilder.fallback;
+exports.rule.char = RuleBuilder.char;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicnVsZXMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvcnVsZXMudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7Ozs7QUErQ0EsTUFBYSxXQUFXO0lBdUJwQixZQUFZLElBQWM7UUFGMUIsd0JBQW9CO1FBR2hCLHVCQUFBLElBQUksU0FBUyxFQUFFLElBQUksRUFBRSxJQUFJLEVBQUUsRUFBQztJQUNoQyxDQUFDO0lBUkQsSUFBSSxJQUFJO1FBQ0osMkNBQWtCO0lBQ3RCLENBQUM7SUFRRCxLQUFLLENBQUMsSUFBWTtRQUNkLG9DQUFXLEtBQUssR0FBRyxJQUFJLENBQUM7UUFDeEIsT0FBTyxJQUFJLENBQUM7SUFDaEIsQ0FBQztJQUVELE1BQU0sQ0FBQyxNQUFrQjtRQUNyQixvQ0FBVyxNQUFNLEdBQUcsTUFBTSxDQUFDO1FBQzNCLE9BQU8sSUFBSSxDQUFDO0lBQ2hCLENBQUM7SUFFRCxRQUFRLENBQUMsR0FBRyxLQUF5QjtRQUNqQyxJQUFHLG9DQUFXLFFBQVEsS0FBSyxTQUFTLEVBQUM7WUFDakMsb0NBQVcsUUFBUSxHQUFHLEVBQUUsQ0FBQztTQUM1QjtRQUNELEtBQUssQ0FBQyxTQUFTLENBQUMsSUFBSSxDQUFDLEtBQUssQ0FDdEIsb0NBQVcsUUFBUSxFQUNuQixLQUFLLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxFQUFFLEVBQUUsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFDLENBQzNCLENBQUM7UUFDRixPQUFPLElBQUksQ0FBQztJQUNoQixDQUFDO0lBRUQsSUFBSSxDQUFDLEdBQUcsS0FBeUI7UUFDN0IsSUFBRyxvQ0FBVyxJQUFJLEtBQUssU0FBUyxFQUFDO1lBQzdCLG9DQUFXLElBQUksR0FBRyxFQUFFLENBQUM7U0FDeEI7UUFDRCxLQUFLLENBQUMsU0FBUyxDQUFDLElBQUksQ0FBQyxLQUFLLENBQ3RCLG9DQUFXLElBQUksRUFDZixLQUFLLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxFQUFFLEVBQUUsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFDLENBQzNCLENBQUM7UUFDRixPQUFPLElBQUksQ0FBQztJQUNoQixDQUFDOztBQXpETCxrQ0EwREM7O0FBekRVLG9CQUFRLEdBR1g7SUFDQSxNQUFNLEVBQUUsQ0FBQyxJQUFJLFdBQVcsQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLE1BQU0sQ0FBQyxRQUFRLENBQUM7SUFDdEQsSUFBSSxFQUFFLENBQUMsSUFBSSxXQUFXLENBQUMsVUFBVSxDQUFDLENBQUMsQ0FBQyxNQUFNLENBQUMsTUFBTSxDQUFDO0NBQ3JELENBQUM7QUFFSyxnQkFBSSxHQUdQO0lBQ0EsTUFBTSxFQUFFLENBQUMsSUFBSSxXQUFXLENBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQyxNQUFNLENBQUMsUUFBUSxDQUFDO0lBQ2xELElBQUksRUFBRSxDQUFDLElBQUksV0FBVyxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUMsTUFBTSxDQUFDLE1BQU0sQ0FBQztDQUNqRCxDQUFBO0FBeURRLFFBQUEsSUFBSSxHQUFpQixDQUFDLENBQUMsSUFBYyxFQUFFLEVBQUUsQ0FBQyxJQUFJLFdBQVcsQ0FBQyxJQUFJLENBQUMsQ0FBUSxDQUFDO0FBQ3JGLFlBQUksQ0FBQyxRQUFRLEdBQUcsV0FBVyxDQUFDLFFBQVEsQ0FBQztBQUNyQyxZQUFJLENBQUMsSUFBSSxHQUFHLFdBQVcsQ0FBQyxJQUFJLENBQUMifQ==

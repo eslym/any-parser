@@ -1,4 +1,4 @@
-export declare type RuleTest = 'char' | 'extend' | 'fallback' | {pattern: string, flags?:string};
+export declare type RuleTest = 'char' | 'extend' | 'fallback' | {pattern: string, flags?:string} | RegExp;
 
 export declare type RuleAction = 'append' | 'commit' | 'halt' | 'skip';
 
@@ -63,45 +63,42 @@ export class RuleBuilder implements RuleHolder<Rule>{
     }
 
     get rule(): Rule {
-        return this._rule;
+        return this.#rule;
     }
 
-    private readonly _rule: any;
+    readonly #rule: any;
 
     constructor(test: RuleTest) {
-        if(!(this instanceof RuleBuilder)){
-            return new RuleBuilder(test);
-        }
-        this._rule = { test: test };
+        this.#rule = { test: test };
     }
 
     token(name: string): this{
-        this._rule.token = name;
+        this.#rule.token = name;
         return this;
     }
 
     action(action: RuleAction): this{
-        this._rule.action = action;
+        this.#rule.action = action;
         return this;
     }
 
     children(...rules: RuleHolder<Rule>[]): this{
-        if(this._rule.children === undefined){
-            this._rule.children = [];
+        if(this.#rule.children === undefined){
+            this.#rule.children = [];
         }
         Array.prototype.push.apply(
-            this._rule.children,
+            this.#rule.children,
             rules.map((r) => r.rule)
         );
         return this;
     }
 
     next(...rules: RuleHolder<Rule>[]): this{
-        if(this._rule.next === undefined){
-            this._rule.next = [];
+        if(this.#rule.next === undefined){
+            this.#rule.next = [];
         }
         Array.prototype.push.apply(
-            this._rule.next,
+            this.#rule.next,
             rules.map((r) => r.rule)
         );
         return this;
@@ -118,7 +115,8 @@ interface RuleFunction{
         readonly skip: RuleHolder<MatchRule> | RuleBuilder,
     };
     (test: RuleTest):RuleBuilder;
-    new (test: RuleTest):RuleBuilder;
 }
 
-export const rule: RuleFunction = RuleBuilder as any;
+export const rule: RuleFunction = ((test: RuleTest) => new RuleBuilder(test)) as any;
+rule.fallback = RuleBuilder.fallback;
+rule.char = RuleBuilder.char;

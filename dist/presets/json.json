@@ -1,5 +1,5 @@
 {
-  "$schema": "..\\..\\schema\\parser.json",
+  "$schema": "../../schema/parser.json",
   "entries": {
     "default": 0,
     "StringRule": 3,
@@ -12,7 +12,8 @@
   "rules": [
     {
       "test": {
-        "pattern": "\\s*"
+        "pattern": "\\s*",
+        "flags": ""
       },
       "action": "skip",
       "next": [
@@ -43,7 +44,8 @@
     },
     {
       "test": {
-        "pattern": "\""
+        "pattern": "\"",
+        "flags": ""
       },
       "token": "STRING",
       "children": [
@@ -67,7 +69,8 @@
     },
     {
       "test": {
-        "pattern": "[\"\\\\\\/bfnr]"
+        "pattern": "[\"\\\\\\/bfnr]",
+        "flags": ""
       },
       "token": "ESCAPE"
     },
@@ -117,7 +120,8 @@
     },
     {
       "test": {
-        "pattern": "-?(?:0|[1-9]\\d+)"
+        "pattern": "-?(?:0|[1-9]\\d+)",
+        "flags": ""
       },
       "token": "NUMBER",
       "children": [
@@ -127,7 +131,8 @@
     },
     {
       "test": {
-        "pattern": ".\\d+"
+        "pattern": ".\\d+",
+        "flags": ""
       },
       "token": "FRACTION",
       "next": [
@@ -136,25 +141,29 @@
     },
     {
       "test": {
-        "pattern": "[eE][-+]?\\d+"
+        "pattern": "[eE][-+]?\\d+",
+        "flags": ""
       },
       "token": "EXPONENT"
     },
     {
       "test": {
-        "pattern": "true|false"
+        "pattern": "true|false",
+        "flags": ""
       },
       "token": "BOOEAN"
     },
     {
       "test": {
-        "pattern": "null"
+        "pattern": "null",
+        "flags": ""
       },
       "token": "NULL"
     },
     {
       "test": {
-        "pattern": "\\[\\s*"
+        "pattern": "\\[\\s*",
+        "flags": ""
       },
       "token": "ARRAY",
       "children": [
@@ -175,7 +184,8 @@
     },
     {
       "test": {
-        "pattern": "\\s*]"
+        "pattern": "\\s*]",
+        "flags": ""
       },
       "action": "skip",
       "next": [
@@ -184,7 +194,8 @@
     },
     {
       "test": {
-        "pattern": "\\s*,\\s*"
+        "pattern": "\\s*,\\s*",
+        "flags": ""
       },
       "action": "skip",
       "next": [
@@ -194,7 +205,8 @@
     },
     {
       "test": {
-        "pattern": "{\\s*"
+        "pattern": "{\\s*",
+        "flags": ""
       },
       "token": "OBJECT",
       "children": [
@@ -228,7 +240,8 @@
     },
     {
       "test": {
-        "pattern": "\\s*:\\s*"
+        "pattern": "\\s*:\\s*",
+        "flags": ""
       },
       "action": "skip",
       "next": [
@@ -238,7 +251,8 @@
     },
     {
       "test": {
-        "pattern": "\\s*}"
+        "pattern": "\\s*}",
+        "flags": ""
       },
       "action": "skip",
       "next": [
@@ -247,7 +261,8 @@
     },
     {
       "test": {
-        "pattern": "\\s*,\\s*"
+        "pattern": "\\s*,\\s*",
+        "flags": ""
       },
       "action": "skip",
       "next": [
